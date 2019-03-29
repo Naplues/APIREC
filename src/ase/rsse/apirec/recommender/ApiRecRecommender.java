@@ -1,0 +1,120 @@
+/*Copyright [2018] [Kürsat Aydinli & Remo Schenker]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.*/
+
+package ase.rsse.apirec.recommender;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import ase.rsse.apirec.transactions.MethodMatch;
+import ase.rsse.apirec.transactions.TransactionUtility;
+import ase.rsse.apirec.transactions.changecontext.AtomicChange;
+import ase.rsse.apirec.transactions.changecontext.ChangeContext;
+import ase.rsse.apirec.transactions.codecontext.CodeContext;
+import ase.rsse.apirec.transactions.query.QueryAtomicChange;
+import ase.rsse.apirec.transactions.query.QueryChangeContext;
+import ase.rsse.apirec.transactions.query.QueryCodeContext;
+import ase.rsse.apirec.transactions.query.QueryTransaction;
+import ase.rsse.utilities.ScoringUtility;
+import cc.kave.commons.model.events.completionevents.ICompletionEvent;
+import cc.kave.commons.model.ssts.impl.SST;
+
+public class ApiRecRecommender implements IApiRecRecommender {
+    /**
+     * 创建查询事务
+     *
+     * @param oldCompletionEvent 旧的补全事件
+     * @param newCompletionEvent 新的补全事件
+     * @return
+     */
+    @Override
+    public QueryTransaction createQueryTransaction(ICompletionEvent oldCompletionEvent, ICompletionEvent newCompletionEvent) {
+        // initialize SSTs
+        SST oldSst = (SST) oldCompletionEvent.getContext().getSST();
+        SST newSst = (SST) newCompletionEvent.getContext().getSST();
+        TransactionUtility.init(oldSst, newSst);
+
+        // matching -> match old and new methods
+        ArrayList<MethodMatch> matchedMethods = TransactionUtility.matchMethods(oldSst.getMethods(), newSst.getMethods());
+
+        // prepare change and code context
+        ChangeContext chctx = new ChangeContext();
+        CodeContext coctx = new CodeContext();
+
+        // filling -> fill matches into change an code Context
+        TransactionUtility.fillTransactionWithMethods(matchedMethods, chctx, coctx);
+
+        // create query change context and fill it with values of change context
+        QueryChangeContext queryChangeContext = new QueryChangeContext();
+        ArrayList<QueryAtomicChange> qac = new ArrayList<>();
+        for (AtomicChange ac : chctx.getAtomicChanges()) {
+            qac.add(new QueryAtomicChange().withLabel(ac.getLabel()).withNodeType(ac.getNodeType()).withOperation(ac.getOperation()));
+        }
+        queryChangeContext.setQueryAtomicChanges(qac);
+
+        // create query code context and fill it with values of change context
+        QueryCodeContext queryCodeContext = new QueryCodeContext();
+        queryCodeContext.setTokens(coctx.getTokens());
+
+        // fill query change context and query code context into query transaction and return it
+        return new QueryTransaction().withQueryChangeContext(queryChangeContext).withQueryCodeContext(queryCodeContext);
+    }
+
+    @Override
+    public ArrayList<String> predictKBest(ICompletionEvent oldCompletionEvent, ICompletionEvent newCompletionEvent, int k) {
+        // input -> should be difference between the two most recent commits
+        QueryTransaction queryTransaction = createQueryTransaction(oldCompletionEvent, newCompletionEvent);
+
+        // get all candidate transactions
+        Set<AtomicChange> candidateChanges = ScoringUtility.getAllCandidateChanges(queryTransaction.getQueryChangeContex(), queryTransaction.getQueryCodeContext());
+
+        // score change context
+        HashMap<String, Double> changeContextScore = ScoringUtility.scoreChangeContext(candidateChanges, queryTransaction.getQueryChangeContex());
+        HashMap<String, Double> codeContextScore = ScoringUtility.scoreCodeContext(candidateChanges, queryTransaction.getQueryCodeContext());
+
+        // calculate weighted score
+        HashMap<Double, String> weightedScores = calculateWeightedScores(changeContextScore, codeContextScore);
+
+        // get k highest values
+        List<Double> kHighestScores = weightedScores.keySet().stream().sorted(Comparator.comparing(Double::doubleValue)).limit(k).collect(Collectors.toList());
+
+        ArrayList<String> bestMethods = new ArrayList<>();
+        for (Double score : kHighestScores) {
+            bestMethods.add(weightedScores.get(score));
+        }
+        return bestMethods;
+    }
+
+    /**
+     * 计算权重分数
+     *
+     * @param changeContextScore
+     * @param codeContextScore
+     * @return
+     */
+    private HashMap<Double, String> calculateWeightedScores(HashMap<String, Double> changeContextScore, HashMap<String, Double> codeContextScore) {
+        HashMap<Double, String> mergedScores = new HashMap<>();
+        for (String method : changeContextScore.keySet()) {
+            Double changeCtxScore = changeContextScore.get(method);
+            Double codeCtxScore = codeContextScore.get(method);
+            mergedScores.put(changeCtxScore + codeCtxScore, method);
+        }
+        return mergedScores;
+    }
+
+}
