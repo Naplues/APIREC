@@ -32,7 +32,7 @@ import cc.kave.commons.model.events.completionevents.ICompletionEvent;
 public class RecommendationDemo {
 
     // as an input we need two completion events of an user for the same class
-    public static String DEMO_EVENT_FILE = "C:\\Users\\gzq\\Desktop\\Git\\ase_rsse\\apirec\\resharper-angularjs.sln-contexts.zip";
+    public static String DEMO_EVENT_FILE = "C:\\Users\\gzq\\Desktop\\ase_rsse-master\\apirec\\resharper-angularjs.sln-contexts.zip";
 
     public static void main(String[] args) {
 
