@@ -1,0 +1,41 @@
+Match Block(18) to Block(37)
+Match SingleVariableDeclaration(10) to SingleVariableDeclaration(22)
+Match SimpleName: execute(13) to SimpleName: execute(25)
+Match SimpleType: IOException(6) to SimpleType: IOException(6)
+Match MethodInvocation(14) to MethodInvocation(26)
+Match PrimitiveType: void(3) to PrimitiveType: void(3)
+Match Block(16) to Block(35)
+Match Modifier: public(0) to Modifier: public(0)
+Match SimpleName: tasks(11) to SimpleName: tasks(23)
+Match SimpleName: t(12) to SimpleName: t(24)
+Match SimpleName: t(9) to SimpleName: t(21)
+Match EnhancedForStatement(17) to EnhancedForStatement(36)
+Match SimpleName: IOException(5) to SimpleName: IOException(5)
+Match SimpleType: Task(8) to SimpleType: Task(20)
+Match CompilationUnit(21) to CompilationUnit(40)
+Match MethodDeclaration(19) to MethodDeclaration(38)
+Match SimpleName: method(4) to SimpleName: method(4)
+Match ExpressionStatement(15) to ExpressionStatement(27)
+Match TypeDeclaration: class(20) to TypeDeclaration: class(39)
+Match Modifier: public(2) to Modifier: public(2)
+Match SimpleName: Task(7) to SimpleName: Task(19)
+Match SimpleName: Main1(1) to SimpleName: Main1(1)
+Insert VariableDeclarationStatement(18) into Block(37) at 0
+Insert ParameterizedType: Set<TaskResult>(11) into VariableDeclarationStatement(18) at 0
+Insert VariableDeclarationFragment(17) into VariableDeclarationStatement(18) at 1
+Insert SimpleType: Set(8) into ParameterizedType: Set<TaskResult>(11) at 0
+Insert SimpleType: TaskResult(10) into ParameterizedType: Set<TaskResult>(11) at 1
+Insert SimpleName: results(12) into VariableDeclarationFragment(17) at 0
+Insert ClassInstanceCreation(16) into VariableDeclarationFragment(17) at 1
+Insert ExpressionStatement(34) into Block(35) at 1
+Insert SimpleName: Set(7) into SimpleType: Set(8) at 0
+Insert SimpleName: TaskResult(9) into SimpleType: TaskResult(10) at 0
+Insert ParameterizedType: HashSet<>(15) into ClassInstanceCreation(16) at 0
+Insert MethodInvocation(33) into ExpressionStatement(34) at 0
+Insert SimpleType: HashSet(14) into ParameterizedType: HashSet<>(15) at 0
+Insert SimpleName: results(28) into MethodInvocation(33) at 0
+Insert SimpleName: add(29) into MethodInvocation(33) at 1
+Insert MethodInvocation(32) into MethodInvocation(33) at 2
+Insert SimpleName: HashSet(13) into SimpleType: HashSet(14) at 0
+Insert SimpleName: t(30) into MethodInvocation(32) at 0
+Insert SimpleName: getResult(31) into MethodInvocation(32) at 1

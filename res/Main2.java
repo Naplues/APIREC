@@ -1,13 +1,12 @@
 
-public class Main2 {
+public class Main1 {
 
     public void method() throws IOException {
-        for(int i=0;i<10;i++){
-            System.out.println(i);
+        Set<TaskResult> results= new HashSet<>();
+        for(Task t: tasks) {
+            t.execute();
+            results.add(t.getResult());
         }
-        for(int i=0;i<10;i++){
-            System.out.println(i);
-        }
-        int myName=0;
+
     }
 }
